@@ -44,8 +44,8 @@ could be injected into the TLS connection.
 
 A reverse proxy server, however, does not always need to own a valid TLS 
 certificate issued to the server being proxied. Instead, it forwards all 
-connection it received to the origin server without decrypting the TLS 
-and re-encrypting it. This guarantees the privacy of the client and the 
+connectionS it received to the origin server without decrypting the TLS 
+and re-encrypting it. This guarantees the privacy for the client and the 
 authenticity of the origin server. The downside of this approach is obvious: 
 A reverse proxy server cannot serve multiple sites on different servers 
 at the same time.
