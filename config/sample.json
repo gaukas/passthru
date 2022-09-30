@@ -1,42 +1,35 @@
 {
     "min_version": "v0.0.0",
-    "servers": [
-        {
-            "listen_on": "0.0.0.0:443",
-            "filters": {
-                "TLS": {
-                    "SNI gaukas.wang": {
-                        "action": "FORWARD",
-                        "to_addr": "gaukas.wang:443"
-                    },
-                    "SNI google.com": {
-                        "action": "FORWARD",
-                        "to_addr": "google.com:443"
-                    },
-                    "CATCHALL": {
-                        "action": "REJECT"
-                    }
+    "servers": {
+        "0.0.0.0:443": {
+            "TLS": {
+                "SNI gaukas.wang": {
+                    "action": "FORWARD",
+                    "to_addr": "gaukas.wang:443"
                 },
-                "SSH": {
-                    "CATCHALL": {
-                        "action": "REJECT"
-                    }
+                "SNI google.com": {
+                    "action": "FORWARD",
+                    "to_addr": "google.com:443"
+                },
+                "CATCHALL": {
+                    "action": "REJECT"
+                }
+            },
+            "SSH": {
+                "CATCHALL": {
+                    "action": "REJECT"
                 }
             }
         },
-        {
-            "listen_on": "0.0.0.0:22",
-            "filters": [
-                {
-                    "protocol": "SSH",
-                    "rules": {
-                        "CATCHALL": {
-                            "action": "FORWARD", 
-                            "to_addr": "127.0.0.1:22122"
-                        }
+        "0.0.0.0:22": {
+            "SSH": {
+                "rules": {
+                    "CATCHALL": {
+                        "action": "FORWARD", 
+                        "to_addr": "127.0.0.1:22122"
                     }
                 }
-            ]
+            }            
         }
-    ]
+    }
 }
