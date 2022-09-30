@@ -111,6 +111,6 @@ changes to the application code base itself.
 A Configuration File Parser is a component that parses the configuration file 
 and provide the information to the Connection Handler. The parser should read 
 rules from the configuration file and save them in a data structure that is 
-pre-defined. The parser should work with a well-known config file syntax, 
-such as JSON or YAML, while keeping the config files human-readable for 
+pre-defined. The parser should work with a well-known config file syntax, here 
+we choose JSON, while keeping the config files human-readable for 
 best user experience.
