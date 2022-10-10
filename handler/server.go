@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"bytes"
+	"io"
 	"net"
 
 	"github.com/gaukas/passthru/config"
@@ -29,4 +31,11 @@ func (s *Server) Start() error {
 	// create listener
 	// start accepting connections （use goroutine）
 	// for each connection, copy it and pass the copy to protocol manager
+
+	// Copy the conn into two buffers using io.TeeReader and bytes.Buffer
+	var buf bytes.Buffer
+	var bufCopy bytes.Buffer
+
+	copyReader := io.TeeReader(conn, &bufCopy)
+	_, err := io.Copy(&buf, copyReader)
 }
