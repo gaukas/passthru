@@ -13,7 +13,7 @@ type Action struct {
 	ToAddr string     `json:"to_addr"` // Address to FORWARD to, if type is FORWARD
 }
 
-type ActionType = uint8
+type ActionType uint8
 
 const (
 	ACTION_FORWARD ActionType = iota + 1 // "FORWARD"
