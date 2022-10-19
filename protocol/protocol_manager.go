@@ -13,7 +13,9 @@ type ProtocolManager struct {
 }
 
 func NewProtocolManager() *ProtocolManager {
-	return &ProtocolManager{}
+	return &ProtocolManager{
+		protocols: make(map[config.Protocol]Protocol),
+	}
 }
 
 // Called before ImportProtocolGroup, or will see error upon unknown protocol

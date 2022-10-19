@@ -3,6 +3,7 @@ package tls_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/gaukas/passthru/config"
 	"github.com/gaukas/passthru/protocol"
@@ -16,6 +17,8 @@ var (
 func TestProtocol(t *testing.T) {
 	testApplyRules(t)
 	testIdentify(t)
+	testIdentifyExpired(t)
+	testIdentifyWithNotEnoughData(t)
 }
 
 func testApplyRules(t *testing.T) {
@@ -75,5 +78,36 @@ func testIdentify(t *testing.T) {
 	}
 	if rule != "CATCHALL" {
 		t.Errorf("Wrong rule identified: %s", rule)
+	}
+}
+
+func testIdentifyExpired(t *testing.T) {
+	ctxExpired, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	cBuf := protocol.NewConnBuf()
+	cBuf.Write(CH_cloudflare_dns_com)
+	rule, err := tlsProtocol.Identify(ctxExpired, cBuf)
+	if err == nil {
+		t.Errorf("should have returned error")
+	}
+	if rule != "" {
+		t.Errorf("should have returned empty rule")
+	}
+}
+
+func testIdentifyWithNotEnoughData(t *testing.T) {
+	ctx := context.Background()
+	ctxFiveSeconds, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	cBuf := protocol.NewConnBuf()
+	cBuf.Write(CH_cloudflare_dns_com[:5])
+	rule, err := tlsProtocol.Identify(ctxFiveSeconds, cBuf)
+	if err == nil {
+		t.Errorf("should have returned error")
+	}
+	if rule != "" {
+		t.Errorf("should have returned empty rule")
 	}
 }
