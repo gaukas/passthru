@@ -1,6 +1,7 @@
 package tls
 
 import (
+	"context"
 	"errors"
 
 	"github.com/gaukas/passthru/config"
@@ -27,13 +28,13 @@ func (p *Protocol) ApplyRules(rules []config.Rule) error {
 	return nil
 }
 
-func (p *Protocol) Identify(cBuf *protocol.ConnBuf) (config.Rule, error) {
-	connInfo, err := ParseConnInfo(cBuf)
+func (p *Protocol) Identify(ctx context.Context, cBuf *protocol.ConnBuf) (config.Rule, error) {
+	connInfo, err := ParseClientHello(ctx, cBuf)
 	if err != nil {
 		return "", err
 	}
 
-	// identify rule
+	// identify rule by the original order
 	for _, rule := range p.rules {
 		switch rule.Type {
 		case RuleSNI:

@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gaukas/passthru/config"
@@ -46,25 +47,42 @@ func (pm *ProtocolManager) ImportProtocolGroup(pg config.ProtocolGroup) error {
 	return nil
 }
 
-func (pm *ProtocolManager) FindAction(cBuf *ConnBuf) (config.Action, error) {
+func (pm *ProtocolManager) FindAction(ctx context.Context, cBuf *ConnBuf) (config.Action, error) {
+	chanRule := make(chan config.Rule)
+	chanProtocol := make(chan config.Protocol)
+	subctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	for pName, p := range pm.protocols {
-		rule, err := p.Identify(cBuf)
-		if err != nil {
-			continue
-		}
-
-		// look for the rule in the protocol group
-		filter, ok := pm.protocolGroup[pName]
-		if !ok {
-			return config.Action{}, fmt.Errorf("Unknown protocol: %s", pName)
-		}
-
-		action, ok := filter[rule]
-		if !ok {
-			return config.Action{}, fmt.Errorf("Unknown rule: %s", rule)
-		}
-
-		return action, nil
+		go func(protocolName config.Protocol, protocol Protocol) {
+			rule, err := protocol.Identify(subctx, cBuf)
+			if err != nil {
+				return
+			}
+			chanRule <- rule
+			chanProtocol <- protocolName
+		}(pName, p)
 	}
-	return config.Action{}, fmt.Errorf("No rule matched")
+
+	select {
+	case rule := <-chanRule:
+		select {
+		case protocolName := <-chanProtocol:
+			// look for the rule in the protocol group
+			filter, ok := pm.protocolGroup[protocolName]
+			if !ok {
+				return config.Action{}, fmt.Errorf("Unknown protocol: %s", protocolName)
+			}
+
+			action, ok := filter[rule]
+			if !ok {
+				return config.Action{}, fmt.Errorf("Unknown rule: %s", rule)
+			}
+			return action, nil
+		case <-ctx.Done():
+			return config.Action{}, ctx.Err()
+		}
+	case <-ctx.Done():
+		return config.Action{}, ctx.Err()
+	}
 }

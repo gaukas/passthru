@@ -11,25 +11,25 @@ func ValidateRule(rule string) error {
 	// split into parts delimited by space
 	ruleParts := strings.Split(rule, " ")
 	if len(ruleParts) > 2 || len(ruleParts) < 1 {
-		return fmt.Errorf("Invalid rule: %s", rule)
+		return fmt.Errorf("invalid rule: %s", rule)
 	}
 
 	// validate rule
 	switch ruleParts[0] {
 	case "SNI":
 		if len(ruleParts) != 2 {
-			return fmt.Errorf("Invalid rule: %s", rule)
+			return fmt.Errorf("invalid rule: %s", rule)
 		}
 	case "ALPN":
 		if len(ruleParts) != 2 {
-			return fmt.Errorf("Invalid rule: %s", rule)
+			return fmt.Errorf("invalid rule: %s", rule)
 		}
 	case "CATCHALL":
 		if len(ruleParts) != 1 {
-			return fmt.Errorf("Invalid rule: %s", rule)
+			return fmt.Errorf("invalid rule: %s", rule)
 		}
 	default:
-		return fmt.Errorf("Invalid rule: %s", rule)
+		return fmt.Errorf("invalid rule: %s", rule)
 	}
 
 	return nil
@@ -78,7 +78,7 @@ func ParseRule(rule config.Rule) (Rule, error) {
 			RuleName: rule,
 		}, nil
 	default:
-		return Rule{}, fmt.Errorf("Invalid rule: %s", rule)
+		return Rule{}, fmt.Errorf("invalid rule: %s", rule)
 	}
 }
 

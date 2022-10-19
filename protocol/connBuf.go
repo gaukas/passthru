@@ -1,8 +1,13 @@
 package protocol
 
 import (
+	"errors"
 	"io"
 	"sync"
+)
+
+var (
+	ErrNotEnoughData = errors.New("not enough data in buffer")
 )
 
 // Thread-safe buffer in order to allow inspection of the connection
@@ -47,14 +52,17 @@ func (cb *ConnBuf) Close() error {
 	return nil
 }
 
-func (cb *ConnBuf) Content(maxLen uint) []byte {
+// Peek copies at least n bytes from the buffer, or return error
+func (cb *ConnBuf) Peek(p []byte, n int) error {
 	cb.mutex.RLock()
 	defer cb.mutex.RUnlock()
-	// deep copy
-	buf := make([]byte, len(cb.buf))
-	copy(buf, cb.buf)
-	if uint(len(buf)) > maxLen {
-		return buf[:maxLen]
+	if cb.closed { // if closed, no need to peek as it can't be used anymore
+		return io.EOF
 	}
-	return buf
+
+	nRead := copy(p, cb.buf)
+	if nRead < n {
+		return ErrNotEnoughData
+	}
+	return nil
 }
