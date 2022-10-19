@@ -35,7 +35,7 @@ func (pm *ProtocolManager) ImportProtocolGroup(pg config.ProtocolGroup) error {
 			return fmt.Errorf("unknown protocol: %s", protocol)
 		}
 		rules := []config.Rule{}
-		for rule, _ := range filter {
+		for rule := range filter {
 			rules = append(rules, rule)
 		}
 		err := p.ApplyRules(rules)
