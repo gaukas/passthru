@@ -32,7 +32,7 @@ func (pm *ProtocolManager) ImportProtocolGroup(pg config.ProtocolGroup) error {
 	for protocol, filter := range pg {
 		p := pm.GetProtocol(protocol)
 		if p == nil {
-			return fmt.Errorf("Unknown protocol: %s", protocol)
+			return fmt.Errorf("unknown protocol: %s", protocol)
 		}
 		rules := []config.Rule{}
 		for rule, _ := range filter {
@@ -73,12 +73,12 @@ func (pm *ProtocolManager) FindAction(ctx context.Context, cBuf *ConnBuf) (confi
 			// look for the rule in the protocol group
 			filter, ok := pm.protocolGroup[protocolName]
 			if !ok {
-				return config.Action{}, fmt.Errorf("Unknown protocol: %s", protocolName)
+				return config.Action{}, fmt.Errorf("unknown protocol: %s", protocolName)
 			}
 
 			action, ok := filter[rule]
 			if !ok {
-				return config.Action{}, fmt.Errorf("Unknown rule: %s", rule)
+				return config.Action{}, fmt.Errorf("unknown rule: %s", rule)
 			}
 			return action, nil
 		case <-ctx.Done():
