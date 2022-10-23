@@ -16,8 +16,8 @@ type Action struct {
 type ActionType uint8
 
 const (
-	ACTION_FORWARD ActionType = iota + 1 // "FORWARD"
-	ACTION_REJECT                        // "REJECT"
+	ACTION_REJECT  ActionType = iota // "REJECT" - 0
+	ACTION_FORWARD                   // "FORWARD" - 1
 )
 
 // Implement custom unmarshaller/marshaller for ActionType

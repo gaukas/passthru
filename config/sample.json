@@ -19,6 +19,12 @@
                 "CATCHALL": {
                     "action": "REJECT"
                 }
+            },
+            "CATCHALL": {
+                "CATCHALL": {
+                    "action": "FORWARD",
+                    "to_addr": "127.0.0.1:443"
+                }
             }
         },
         "0.0.0.0:22": {
