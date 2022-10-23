@@ -77,7 +77,7 @@ func testImportProtocolGroup(t *testing.T) {
 	pg := config.ProtocolGroup{
 		config.Protocol("dummy"): config.Filter{
 			config.Rule("test"): config.Action{
-				Type:   config.ACTION_FORWARD,
+				Action: config.ACTION_FORWARD,
 				ToAddr: "127.0.0.2:8080",
 			},
 		},
@@ -97,7 +97,7 @@ func testFindAction(t *testing.T) {
 		t.Errorf("Error finding action: %s", err)
 	}
 
-	if action.Type != config.ACTION_FORWARD {
+	if action.Action != config.ACTION_FORWARD {
 		t.Errorf("Error finding action: %s", err)
 	}
 }

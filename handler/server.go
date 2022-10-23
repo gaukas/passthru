@@ -87,7 +87,7 @@ func (s *Server) handleConn(conn net.Conn) {
 		return
 	}
 
-	switch action.Type {
+	switch action.Action {
 	case config.ACTION_FORWARD:
 		// dial up the destination
 		connDst, err := net.Dial("tcp", action.ToAddr)

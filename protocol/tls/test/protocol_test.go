@@ -23,10 +23,10 @@ func TestProtocol(t *testing.T) {
 
 func testApplyRules(t *testing.T) {
 	rules := []config.Rule{
+		"CATCHALL",
 		"SNI cloudflare-dns.com",
 		"SNI dns.quad9.net",
 		"ALPN h2",
-		"CATCHALL",
 	}
 
 	err := tlsProtocol.ApplyRules(rules)

@@ -1,35 +1,35 @@
 {
-    "min_version": "v0.0.0",
+    "min_version": "v3.2.1",
     "servers": {
         "0.0.0.0:443": {
-            "TLS": {
-                "SNI gaukas.wang": {
+            "ProtocolA": {
+                "RULE_A a.domain.com": {
                     "action": "FORWARD",
                     "to_addr": "gaukas.wang:443"
                 },
-                "SNI google.com": {
+                "RULE_A b.domain.com": {
                     "action": "FORWARD",
                     "to_addr": "google.com:443"
                 },
-                "CATCHALL": {
+                "RULE_A CATCHALL": {
                     "action": "REJECT"
                 }
             },
-            "SSH": {
-                "CATCHALL": {
+            "ProtocolB": {
+                "RULE_B CATCHALL": {
                     "action": "REJECT"
                 }
             },
-            "CATCHALL": {
-                "CATCHALL": {
+            "ProtocolCATCHALL": {
+                "RULE_C CATCHALL": {
                     "action": "FORWARD",
                     "to_addr": "127.0.0.1:443"
                 }
             }
         },
         "0.0.0.0:22": {
-            "SSH": {
-                "CATCHALL": {
+            "ProtocolD": {
+                "RULE_D CATCHALL": {
                     "action": "FORWARD", 
                     "to_addr": "127.0.0.1:22122"
                 }

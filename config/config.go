@@ -1,5 +1,10 @@
 package config
 
+import (
+	"encoding/json"
+	"os"
+)
+
 // Config is a struct that can be loaded from a JSON file
 // or written to a JSON file
 type Config struct {
@@ -7,14 +12,29 @@ type Config struct {
 	Servers    ServerGroup `json:"servers"`     // A list of servers to listen on
 }
 
-func (c *Config) Load(filename string) error {
+func LoadConfig(filename string) (*Config, error) {
 	// read data from file
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
 	// then call json unmarshal
+	c := Config{}
+	json.Unmarshal(content, &c)
+
+	return &c, nil
 }
 
 func (c *Config) Write(filename string) error {
 	// call json marshal
+	content, err := json.Marshal(c)
+	if err != nil {
+		return err
+	}
+
 	// then write data to file
+	err = os.WriteFile(filename, content, 0644)
+	return err
 }
 
 // Example Servers:
