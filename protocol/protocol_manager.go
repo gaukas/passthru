@@ -3,6 +3,7 @@ package protocol
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/gaukas/passthru/config"
 )
@@ -10,6 +11,7 @@ import (
 type ProtocolManager struct {
 	protocols     map[config.Protocol]Protocol
 	protocolGroup config.ProtocolGroup
+	catchAll      config.Action
 }
 
 func NewProtocolManager() *ProtocolManager {
@@ -30,6 +32,17 @@ func (pm *ProtocolManager) GetProtocol(name config.Protocol) Protocol {
 // Called after RegisterProtocol, or will see error upon unknown protocol
 func (pm *ProtocolManager) ImportProtocolGroup(pg config.ProtocolGroup) error {
 	for protocol, filter := range pg {
+		if protocol == "CATCHALL" { // if CATCHALL, save it in catchAll.
+			for rule, action := range filter {
+				if rule != "CATCHALL" {
+					return fmt.Errorf("the CATCHALL protocol must ONLY have CATCHALL rule")
+				}
+				pm.catchAll = action
+				continue
+			}
+			return fmt.Errorf("the CATCHALL protocol must have CATCHALL rule")
+		} // When not set, CATCHALL will be REJECT
+
 		p := pm.GetProtocol(protocol)
 		if p == nil {
 			return fmt.Errorf("unknown protocol: %s", protocol)
@@ -55,8 +68,12 @@ func (pm *ProtocolManager) FindAction(ctx context.Context, cBuf *ConnBuf) (confi
 	subctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	wg := &sync.WaitGroup{}
+
 	for pName, p := range pm.protocols {
+		wg.Add(1)
 		go func(protocolName config.Protocol, protocol Protocol) {
+			defer wg.Done()
 			rule, err := protocol.Identify(subctx, cBuf)
 			if err != nil {
 				return
@@ -65,6 +82,12 @@ func (pm *ProtocolManager) FindAction(ctx context.Context, cBuf *ConnBuf) (confi
 			chanProtocol <- protocolName
 		}(pName, p)
 	}
+
+	// wait for all goroutines to finish, then cancel the context
+	go func() {
+		wg.Wait()
+		cancel()
+	}()
 
 	select {
 	case rule := <-chanRule:
@@ -81,10 +104,10 @@ func (pm *ProtocolManager) FindAction(ctx context.Context, cBuf *ConnBuf) (confi
 				return config.Action{}, fmt.Errorf("unknown rule: %s", rule)
 			}
 			return action, nil
-		case <-ctx.Done():
-			return config.Action{}, ctx.Err()
+		case <-ctx.Done(): // CATCHALL
+			return pm.catchAll, ctx.Err()
 		}
 	case <-ctx.Done():
-		return config.Action{}, ctx.Err()
+		return pm.catchAll, ctx.Err()
 	}
 }
