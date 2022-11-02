@@ -9,7 +9,7 @@
 
 - Gaukas Wang <[gaukas.wang@colorado.edu](mailto:gaukas.wang@colorado.edu)>
 - Parker Morr <[pamo0131@colorado.edu](mailto:pamo0131@colorado.edu)>
-- Sharon Moses Jangam <[shja8214@c  olorado.edu](mailto:shja8214@colorado.edu)>
+- Sharon Moses Jangam <[shja8214@colorado.edu](mailto:shja8214@colorado.edu)>
 
 ## Current Progress
 
