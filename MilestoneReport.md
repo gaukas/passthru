@@ -9,7 +9,7 @@
 
 - Gaukas Wang <[gaukas.wang@colorado.edu](mailto:gaukas.wang@colorado.edu)>
 - Parker Morr <[pamo0131@colorado.edu](mailto:pamo0131@colorado.edu)>
-- Sharon Moses Jangam <[shja8214@colorado.edu](mailto:shja8214@colorado.edu)>
+- Sharon Moses Jangam <[shja8214@c  olorado.edu](mailto:shja8214@colorado.edu)>
 
 ## Current Progress
 
@@ -27,7 +27,7 @@ To make sure we are making good progress on the project, we have implemented a r
     - [x] Example Protocol Identifier: `protocol/tls.Protocol` struct (Oct 17)
 - `config` package:
     - [x] Configuration Parser: `config.Config` struct (Oct 22)
-- `cmd/passthru` main program:
+- `cmd/passthru` main program: (Planned: by Nov 18)
     - [ ] Parse configuration file into a `config.Config` struct
     - [ ] Create all `handler.Server`s
     - [ ] Load configuration into all servers' protocol managers
