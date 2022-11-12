@@ -17,6 +17,10 @@ func (p *DummyProtocol) Name() config.Protocol {
 	return config.Protocol("dummy")
 }
 
+func (p *DummyProtocol) Clone() protocol.Protocol {
+	return &DummyProtocol{}
+}
+
 func (p *DummyProtocol) ApplyRules(rules []config.Rule) error {
 	for _, rule := range rules {
 		fmt.Printf("Applying rule: %s\n", rule)

@@ -16,6 +16,14 @@ func (p *Protocol) Name() config.Protocol {
 	return "TLS"
 }
 
+func (p *Protocol) Clone() protocol.Protocol {
+	pCopy := &Protocol{}
+	for _, rule := range p.rules {
+		pCopy.rules = append(pCopy.rules, rule)
+	}
+	return pCopy
+}
+
 func (p *Protocol) ApplyRules(rules []config.Rule) error {
 	// parse rules
 	parsedRules, err := ParseRules(rules)

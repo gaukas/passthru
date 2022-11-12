@@ -1,5 +1,5 @@
 {
-    "min_version": "v0.0.0",
+    "version": "v0.0.0",
     "servers": {
         "0.0.0.0:443": {
             "TLS": {

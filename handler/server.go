@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -15,20 +16,33 @@ import (
 // Any incoming connections accepted on the listener will be COPIED
 // and the copy will be passed to the protocol manager's FindAction method
 
+type ServerMode uint8
+
+const (
+	SERVER_MODE_WORKER    ServerMode = iota // HandleNextConn() to be called by an external worker
+	SERVER_MODE_UNLIMITED                   // unlimited number of connections will be handled
+)
+
+const (
+	DEFAULT_TIMEOUT = 5 * time.Second
+)
+
 type Server struct {
 	serverAddr config.ServerAddr
 	listener   net.Listener
 
-	timeout         time.Duration
 	protocolManager *protocol.ProtocolManager
+
+	connBuf chan net.Conn
+	mode    ServerMode
 }
 
 // Required parameters will be provided from the main function
-func NewServer(serverAddr config.ServerAddr, protocolManager *protocol.ProtocolManager) *Server {
+func NewServer(serverAddr config.ServerAddr, protocolManager *protocol.ProtocolManager, mode ServerMode) *Server {
 	return &Server{
 		serverAddr:      serverAddr,
 		protocolManager: protocolManager,
-		timeout:         5 * time.Second,
+		mode:            mode,
 	}
 }
 
@@ -39,6 +53,7 @@ func (s *Server) Start() error {
 	}
 
 	s.listener = listener
+	s.connBuf = make(chan net.Conn)
 
 	go s.acceptLoop()
 
@@ -46,25 +61,52 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Stop() error {
-	return s.listener.Close()
+	close(s.connBuf)
+	if s.listener != nil {
+		err := s.listener.Close()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *Server) acceptLoop() {
 	for {
 		conn, err := s.listener.Accept()
-		if err != nil {
+		if err != nil { // FATAL
 			s.listener.Close()
 			return
 		}
 
-		go s.handleConn(conn)
+		if s.mode == SERVER_MODE_UNLIMITED {
+			ctxExpire, cancel := context.WithTimeout(context.Background(), DEFAULT_TIMEOUT)
+			go s.handleConn(ctxExpire, conn)
+			defer cancel()
+		} else {
+			s.connBuf <- conn
+		}
 	}
 }
 
-func (s *Server) handleConn(conn net.Conn) {
+// HandleNextConn() will block until a connection is available
+// then call handleConn() to handle the connection upon it.
+// Or it will return an error if the context is cancelled.
+func (s *Server) HandleNextConn(ctx context.Context) error {
+	select {
+	case conn := <-s.connBuf:
+		if conn == nil {
+			return ErrServerStopped
+		}
+		return s.handleConn(ctx, conn)
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *Server) handleConn(ctx context.Context, conn net.Conn) error {
 	defer conn.Close()
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
 
 	// Copy the connection
 	// Pass the copy to the protocol manager
@@ -73,18 +115,23 @@ func (s *Server) handleConn(conn net.Conn) {
 	cBuf := protocol.NewConnBuf()
 	defer cBuf.Close()
 
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		io.Copy(cBuf, conn)
-		cBuf.Close()
+		io.Copy(cBuf, conn) // conn->cBuf
 		conn.Close()
 	}(wg)
 
-	ctxTimeout, cancel := context.WithTimeout(context.Background(), s.timeout)
+	var cancel context.CancelFunc
+	if ctx == nil {
+		ctx, cancel = context.WithTimeout(ctx, DEFAULT_TIMEOUT)
+	} else {
+		ctx, cancel = context.WithCancel(ctx)
+	}
 	defer cancel()
-	action, err := s.protocolManager.FindAction(ctxTimeout, cBuf)
-	if err != nil {
-		return
+	action, err := s.protocolManager.FindAction(ctx, cBuf)
+	if err != nil && err != context.Canceled { // Canceled indicates a CATCHALL
+		return err
 	}
 
 	switch action.Action {
@@ -92,28 +139,24 @@ func (s *Server) handleConn(conn net.Conn) {
 		// dial up the destination
 		connDst, err := net.Dial("tcp", action.ToAddr)
 		if err != nil {
-			return
+			return err
 		}
 		defer connDst.Close()
 
-		wg.Add(1)
-		go func(wg *sync.WaitGroup) {
-			defer wg.Done()
-			io.Copy(connDst, cBuf) // anything read from cBuf will be written to connDst
-		}(wg)
+		fmt.Printf("Forwarding %s to %s\n", conn.RemoteAddr(), connDst.RemoteAddr())
 
-		wg.Add(1)
-		go func(wg *sync.WaitGroup) {
-			defer wg.Done()
-			io.Copy(conn, connDst) // anything read from connDst will be written to conn
-		}(wg)
+		// Set downstream for the connection buffer
+		err = cBuf.SetDownstream(connDst)
+		if err != nil {
+			return err
+		}
 
-		wg.Wait() // wait for all goroutines to finish
-
-		return
+		io.Copy(conn, connDst) // connDst->conn, so it is a bidirectional pipe
+		wg.Wait()              // wait for conn->cBuf(->connDst) to finish
+		return nil
 	case config.ACTION_REJECT:
-		return // do nothing, conn will be closed by defer
+		return nil // do nothing, conn will be closed by defer
 	default:
-		return
+		return ErrUnknownAction
 	}
 }

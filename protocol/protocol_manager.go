@@ -22,7 +22,7 @@ func NewProtocolManager() *ProtocolManager {
 
 // Called before ImportProtocolGroup, or will see error upon unknown protocol
 func (pm *ProtocolManager) RegisterProtocol(p Protocol) {
-	pm.protocols[p.Name()] = p
+	pm.protocols[p.Name()] = p.Clone()
 }
 
 func (pm *ProtocolManager) GetProtocol(name config.Protocol) Protocol {
@@ -31,6 +31,7 @@ func (pm *ProtocolManager) GetProtocol(name config.Protocol) Protocol {
 
 // Called after RegisterProtocol, or will see error upon unknown protocol
 func (pm *ProtocolManager) ImportProtocolGroup(pg config.ProtocolGroup) error {
+LOOP_PG:
 	for protocol, filter := range pg {
 		if protocol == "CATCHALL" { // if CATCHALL, save it in catchAll.
 			for rule, action := range filter {
@@ -38,7 +39,7 @@ func (pm *ProtocolManager) ImportProtocolGroup(pg config.ProtocolGroup) error {
 					return fmt.Errorf("the CATCHALL protocol must ONLY have CATCHALL rule")
 				}
 				pm.catchAll = action
-				continue
+				continue LOOP_PG
 			}
 			return fmt.Errorf("the CATCHALL protocol must have CATCHALL rule")
 		} // When not set, CATCHALL will be REJECT

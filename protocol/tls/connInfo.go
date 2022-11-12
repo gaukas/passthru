@@ -23,7 +23,7 @@ func ParseClientHello(ctx context.Context, cbuf *protocol.ConnBuf) (ConnInfo, er
 		buf := make([]byte, 5)
 		err := cbuf.Peek(buf, 5)
 		if err != nil {
-			if err != io.EOF {
+			if err == io.EOF {
 				return ConnInfo{}, err
 			} else {
 				time.Sleep(20 * time.Millisecond)

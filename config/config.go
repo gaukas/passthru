@@ -8,8 +8,8 @@ import (
 // Config is a struct that can be loaded from a JSON file
 // or written to a JSON file
 type Config struct {
-	MinVersion Version     `json:"min_version"` // TODO: implement marshaller/unmarshaller for Version
-	Servers    ServerGroup `json:"servers"`     // A list of servers to listen on
+	Version Version     `json:"version"`
+	Servers ServerGroup `json:"servers"` // A list of servers to listen on
 }
 
 func LoadConfig(filename string) (*Config, error) {

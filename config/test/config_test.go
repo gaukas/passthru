@@ -26,14 +26,14 @@ func testLoadConfig(t *testing.T) {
 }
 
 func testVersion(t *testing.T) {
-	if conf.MinVersion.Major != 3 {
-		t.Errorf("incorrect major version: %d", conf.MinVersion.Major)
+	if conf.Version.Major != 0 {
+		t.Errorf("incorrect major version: %d", conf.Version.Major)
 	}
-	if conf.MinVersion.Minor != 2 {
-		t.Errorf("incorrect minor version: %d", conf.MinVersion.Minor)
+	if conf.Version.Minor != 2 {
+		t.Errorf("incorrect minor version: %d", conf.Version.Minor)
 	}
-	if conf.MinVersion.Patch != 1 {
-		t.Errorf("incorrect patch version: %d", conf.MinVersion.Patch)
+	if conf.Version.Patch != 1 {
+		t.Errorf("incorrect patch version: %d", conf.Version.Patch)
 	}
 }
 

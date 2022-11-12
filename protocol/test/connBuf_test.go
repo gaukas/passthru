@@ -23,6 +23,8 @@ func TestConnBuf(t *testing.T) {
 	testPeekAfterClose(t)
 	testReadAfterClose(t)
 	testReadEmptyBufAfterClose(t)
+
+	// TODO: test downstream writing
 }
 
 func testNewConnBuf(t *testing.T) {
@@ -47,15 +49,6 @@ func testRead(t *testing.T) {
 	}
 	if string(p[:n]) != "test" {
 		t.Errorf("Error reading from ConnBuf")
-	}
-
-	// Read again, should NOT return EOF
-	n, err = cBuf.Read(p)
-	if err != nil {
-		t.Errorf("Error reading from ConnBuf: %s", err)
-	}
-	if n != 0 {
-		t.Errorf("Wrong number of bytes read: %d", n)
 	}
 }
 

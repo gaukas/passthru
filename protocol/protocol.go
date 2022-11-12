@@ -6,9 +6,13 @@ import (
 	"github.com/gaukas/passthru/config"
 )
 
+// Protocol is the interface for protocol identification.
 type Protocol interface {
 	// Name prints the name of the protocol, like "TLS", which is going to be used as a key in the ProtocolGroup
 	Name() config.Protocol
+
+	// Clone creates a new Protocol instance with the same rules (as a deep copy)
+	Clone() Protocol
 
 	// ApplyRules inputs the rules to be used by the protocol.
 	// Note the rules are out-of-order.
