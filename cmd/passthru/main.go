@@ -9,10 +9,13 @@ import (
 	"sync"
 	"time"
 
+	"go.uber.org/zap",
+	"go.uber.org/zap/zapcore",
 	"github.com/gaukas/passthru/config"
 	"github.com/gaukas/passthru/handler"
 	"github.com/gaukas/passthru/protocol"
 	"github.com/gaukas/passthru/protocol/tls"
+	"github.com/gaukas/internal/logger"
 )
 
 var (
@@ -30,6 +33,9 @@ var (
 // STOP EDITING! OR YOU ARE HACKING THE PROJECT.
 
 func main() {
+
+	filename := "logs.log"
+	log := logger.fileLogger(filename)
 	configFile := flag.String("c", "", "path to config file")
 	workerCountPerServer := flag.Int("w", 10, "number of workers (default 10, 0 for unlimited) assigned for each server")
 	workerTimeout := flag.Duration("t", 5*time.Second, "worker timeout in seconds (default 5)")
@@ -45,11 +51,14 @@ func main() {
 	// Check version
 	switch conf.Version.CanFitInServer(serverVersion) {
 	case config.WONT_FIT:
-		panic("[FATAL] config version is too new for the server.")
+		//panic("[FATAL] config version is too new for the server.")
+		log.Fatal("config version is too new for the server.")
 	case config.MAY_FIT:
-		fmt.Println("[WARNING] config version is newer than the server. Some features may not work.")
+		//fmt.Println("[WARNING] config version is newer than the server. Some features may not work.")
+		log.Warn("config version is newer than the server. Some features may not work.")
 	case config.SHOULD_FIT:
-		fmt.Println("[INFO] config version is better patched than the server. There could be unintended bahaviors.")
+		//fmt.Println("[INFO] config version is better patched than the server. There could be unintended bahaviors.")
+		log.Info("config version is better patched than the server. There could be unintended bahaviors.")
 	}
 
 	bufServer := make(chan *handler.Server, len(conf.Servers))
@@ -105,7 +114,8 @@ func main() {
 			}
 		}
 
-		fmt.Printf("[INFO] server %s started\n", serverAddr)
+		//fmt.Printf("[INFO] server %s started\n", serverAddr)
+		log.Info("server started ", zap.String("Server Addr:", serverAddr))
 		bufServer <- server
 	}
 	close(bufServer)
