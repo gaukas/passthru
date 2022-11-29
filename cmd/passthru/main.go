@@ -35,6 +35,18 @@ func main() {
 	workerTimeout := flag.Duration("t", 5*time.Second, "worker timeout in seconds (default 5)")
 	flag.Parse()
 
+	// Disable worker-based concurrency for now
+	if *workerCountPerServer != 0 {
+		fmt.Println("Worker-based concurrency is not enabled for this build. Automatically set to 0.")
+	}
+	*workerCountPerServer = 0
+
+	// Must set config file
+	if *configFile == "" {
+		fmt.Println("Config file is not set. Use -c to set config file.")
+		os.Exit(1)
+	}
+
 	// Load config
 	var err error
 	conf, err = config.LoadConfig(*configFile)
