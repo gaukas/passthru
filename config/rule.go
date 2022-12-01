@@ -2,9 +2,6 @@ package config
 
 import (
 	"fmt",
-	"go.uber.org/zap",
-	"go.uber.org/zap/zapcore",
-	"github.com/gaukas/internal/logger"
 )
 
 // Example Action:
@@ -37,8 +34,7 @@ func (at *ActionType) UnmarshalJSON(data []byte) error {
 	case "\"FORWARD\"":
 		*at = ACTION_FORWARD
 	default:
-		//return fmt.Errorf("invalid action type: %s", string(data))
-		return log.Error("config version is too new for the server.")
+		return fmt.Errorf("invalid action type: %s", string(data))
 	}
 	return nil
 }
@@ -50,8 +46,7 @@ func (at *ActionType) MarshalJSON() ([]byte, error) {
 	case ACTION_FORWARD:
 		return []byte("\"FORWARD\""), nil
 	default:
-		//return nil, fmt.Errorf("invalid action type: %d", *at)
-		return nil, log.Info("invalid action type", zap.String(":", *at))
+		return nil, fmt.Errorf("invalid action type: %d", *at)
 
 	}
 }
