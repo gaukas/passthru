@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"sync"
+        "github.com/gaukas/passthru/internal/logger"
 )
 
 var (
@@ -40,6 +41,7 @@ func (cb *ConnBuf) Write(p []byte) (n int, err error) {
 			if len(cb.buf) > 0 {
 				_, err = cb.downstream.Write(cb.buf)
 				if err != nil {
+					logger.Errorf("Caught error %v", err)
 					return 0, err
 				}
 

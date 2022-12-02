@@ -58,6 +58,7 @@ LOOP_PG:
 		}
 		err := p.ApplyRules(rules)
 		if err != nil {
+			logger.Debugf("Error %v", err)
 			return err
 		}
 	}

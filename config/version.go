@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+        "github.com/gaukas/passthru/internal/logger"
 )
 
 // Version is a struct that represents the version of the config file
@@ -72,14 +73,17 @@ func (v *Version) UnmarshalJSON(data []byte) error {
 	// convert the parts into ints
 	major, err := strconv.Atoi(parts[0])
 	if err != nil {
+                logger.Errorf("invalid version string: %s", string(data))
 		return fmt.Errorf("invalid version string: %s", string(data))
 	}
 	minor, err := strconv.Atoi(parts[1])
 	if err != nil {
+                logger.Errorf("invalid version string: %s", string(data))
 		return fmt.Errorf("invalid version string: %s", string(data))
 	}
 	patch, err := strconv.Atoi(parts[2])
 	if err != nil {
+                logger.Errorf("invalid version string: %s", string(data))
 		return fmt.Errorf("invalid version string: %s", string(data))
 	}
 

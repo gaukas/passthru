@@ -165,8 +165,10 @@ func (s *Server) handleConn(ctx context.Context, conn net.Conn) error {
 		wg.Wait()              // wait for conn->cBuf(->connDst) to finish
 		return nil
 	case config.ACTION_REJECT:
+                logger.Debugf("Doing nothing, connection will be closed by defer")
 		return nil // do nothing, conn will be closed by defer
 	default:
+                logger.Errorf("Error Unknown Action!!")
 		return ErrUnknownAction
 	}
 }

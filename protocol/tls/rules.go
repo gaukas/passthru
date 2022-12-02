@@ -5,12 +5,14 @@ import (
 	"strings"
 
 	"github.com/gaukas/passthru/config"
+        "github.com/gaukas/passthru/internal/logger"
 )
 
 func ValidateRule(rule string) error {
 	// split into parts delimited by space
 	ruleParts := strings.Split(rule, " ")
 	if len(ruleParts) > 2 || len(ruleParts) < 1 {
+                logger.Errorf("Invaild rule: %s", rule)
 		return fmt.Errorf("invalid rule: %s", rule)
 	}
 
@@ -18,17 +20,21 @@ func ValidateRule(rule string) error {
 	switch ruleParts[0] {
 	case "SNI":
 		if len(ruleParts) != 2 {
+                        logger.Errorf("Invaild rule: %s", rule)
 			return fmt.Errorf("invalid rule: %s", rule)
 		}
 	case "ALPN":
 		if len(ruleParts) != 2 {
+                        logger.Errorf("Invaild rule: %s", rule)
 			return fmt.Errorf("invalid rule: %s", rule)
 		}
 	case "CATCHALL":
 		if len(ruleParts) != 1 {
+                        logger.Errorf("Invaild rule: %s", rule)
 			return fmt.Errorf("invalid rule: %s", rule)
 		}
 	default:
+                logger.Errorf("Invaild rule: %s", rule)
 		return fmt.Errorf("invalid rule: %s", rule)
 	}
 
@@ -78,6 +84,7 @@ func ParseRule(rule config.Rule) (Rule, error) {
 			RuleName: rule,
 		}, nil
 	default:
+                logger.Errorf("Invaild rule: %s", rule)
 		return Rule{}, fmt.Errorf("invalid rule: %s", rule)
 	}
 }

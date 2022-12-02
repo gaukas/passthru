@@ -6,6 +6,7 @@ import (
 
 	"github.com/gaukas/passthru/config"
 	"github.com/gaukas/passthru/protocol"
+        "github.com/gaukas/passthru/internal/logger"
 )
 
 type Protocol struct {
@@ -57,6 +58,6 @@ func (p *Protocol) Identify(ctx context.Context, cBuf *protocol.ConnBuf) (config
 			return rule.RuleName, nil
 		}
 	}
-
+        logger.Debugf("No rule matched!!")
 	return "", errors.New("no rule matched")
 }
