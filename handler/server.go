@@ -2,13 +2,13 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net"
 	"sync"
 	"time"
 
 	"github.com/gaukas/passthru/config"
+	"github.com/gaukas/passthru/internal/logger"
 	"github.com/gaukas/passthru/protocol"
 )
 
@@ -47,8 +47,10 @@ func NewServer(serverAddr config.ServerAddr, protocolManager *protocol.ProtocolM
 }
 
 func (s *Server) Start() error {
+	logger.Warnf("Starting server on %s", s.serverAddr)
 	listener, err := net.Listen("tcp", s.serverAddr)
 	if err != nil {
+		logger.Errorf("Failed to start server on %s: %s", s.serverAddr, err)
 		return err
 	}
 
@@ -61,6 +63,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Stop() error {
+	logger.Warnf("Stopping server on %s", s.serverAddr)
 	close(s.connBuf)
 	if s.listener != nil {
 		err := s.listener.Close()
@@ -68,22 +71,27 @@ func (s *Server) Stop() error {
 			return err
 		}
 	}
+	logger.Infof("Server on %s stopped", s.serverAddr)
 	return nil
 }
 
 func (s *Server) acceptLoop() {
 	for {
 		conn, err := s.listener.Accept()
-		if err != nil { // FATAL
-			s.listener.Close()
+		if err != nil {
+			logger.Errorf("Failed to accept connection: %s, shutting down the server... ", err)
+			s.Stop()
 			return
 		}
+		logger.Infof("Accepted connection from %s", conn.RemoteAddr())
 
 		if s.mode == SERVER_MODE_UNLIMITED {
+			logger.Debugf("Starting a new goroutine to handle the connection from %s", conn.RemoteAddr())
 			ctxExpire, cancel := context.WithTimeout(context.Background(), DEFAULT_TIMEOUT)
 			go s.handleConn(ctxExpire, conn)
 			defer cancel()
 		} else {
+			logger.Debugf("Passing the connection from %s to the channel", conn.RemoteAddr())
 			s.connBuf <- conn
 		}
 	}
@@ -96,10 +104,12 @@ func (s *Server) HandleNextConn(ctx context.Context) error {
 	select {
 	case conn := <-s.connBuf:
 		if conn == nil {
+			logger.Errorf("Connection channel is closed, cannot handle the next connection")
 			return ErrServerStopped
 		}
 		return s.handleConn(ctx, conn)
 	case <-ctx.Done():
+		logger.Errorf("Context is Done due to reason: %v, cannot handle the next connection", ctx.Err())
 		return ctx.Err()
 	}
 }
@@ -143,7 +153,7 @@ func (s *Server) handleConn(ctx context.Context, conn net.Conn) error {
 		}
 		defer connDst.Close()
 
-		fmt.Printf("Forwarding %s to %s\n", conn.RemoteAddr(), connDst.RemoteAddr())
+		logger.Infof("Forwarding connection from %s to %s", conn.RemoteAddr(), action.ToAddr)
 
 		// Set downstream for the connection buffer
 		err = cBuf.SetDownstream(connDst)

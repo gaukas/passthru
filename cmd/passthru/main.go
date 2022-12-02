@@ -61,7 +61,6 @@ func main() {
 	switch conf.Version.CanFitInServer(serverVersion) {
 	case config.WONT_FIT:
 		panic("[FATAL] config version is too new for the server.")
-		logger.Fatalf("config version is too new for the server.")
 	case config.MAY_FIT:
 		//fmt.Println("[WARNING] config version is newer than the server. Some features may not work.")
 		logger.Warnf("config version is newer than the server. Some features may not work.")
@@ -137,15 +136,18 @@ func main() {
 	go func() {
 		<-c
 		for {
+			// stop all servers
 			server := <-bufServer
 			if server == nil {
 				break
 			}
 			server.Stop()
 		}
+		logger.Warnf("All servers stopped. Waiting for workers to finish...")
 
 		// wait for all workers to finish
 		workerWg.Wait()
+		logger.Warnf("All workers finished. Exiting...")
 		os.Exit(0)
 	}()
 
