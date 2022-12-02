@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/json"
 	"os"
+
+	"github.com/gaukas/passthru/internal/logger"
 )
 
 // Config is a struct that can be loaded from a JSON file
@@ -14,6 +16,7 @@ type Config struct {
 
 func LoadConfig(filename string) (*Config, error) {
 	// read data from file
+	logger.Debugf("Loading config from %s", filename)
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -33,6 +36,7 @@ func (c *Config) Write(filename string) error {
 	}
 
 	// then write data to file
+	logger.Debugf("Writing config to %s", filename)
 	err = os.WriteFile(filename, content, 0644)
 	return err
 }

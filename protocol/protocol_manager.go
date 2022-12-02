@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/gaukas/passthru/config"
+	"github.com/gaukas/passthru/internal/logger"
 )
 
 type ProtocolManager struct {
@@ -31,8 +32,10 @@ func (pm *ProtocolManager) GetProtocol(name config.Protocol) Protocol {
 
 // Called after RegisterProtocol, or will see error upon unknown protocol
 func (pm *ProtocolManager) ImportProtocolGroup(pg config.ProtocolGroup) error {
+	logger.Infof("Importing protocol group...")
 LOOP_PG:
 	for protocol, filter := range pg {
+		logger.Debugf("Importing protocol %s", protocol)
 		if protocol == "CATCHALL" { // if CATCHALL, save it in catchAll.
 			for rule, action := range filter {
 				if rule != "CATCHALL" {
@@ -50,10 +53,12 @@ LOOP_PG:
 		}
 		rules := []config.Rule{}
 		for rule := range filter {
+			logger.Debugf("Importing rule %s", rule)
 			rules = append(rules, rule)
 		}
 		err := p.ApplyRules(rules)
 		if err != nil {
+			logger.Debugf("Error %v", err)
 			return err
 		}
 	}
@@ -104,6 +109,8 @@ func (pm *ProtocolManager) FindAction(ctx context.Context, cBuf *ConnBuf) (confi
 			if !ok {
 				return config.Action{}, fmt.Errorf("unknown rule: %s", rule)
 			}
+
+			logger.Debugf("Found action %s for protocol %s and rule %s", action, protocolName, rule)
 			return action, nil
 		case <-ctx.Done(): // CATCHALL
 			return pm.catchAll, ctx.Err()

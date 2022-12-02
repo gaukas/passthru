@@ -1,6 +1,9 @@
 package config
 
-import "fmt"
+import	(
+    "fmt"
+    "github.com/gaukas/passthru/internal/logger"
+)
 
 // Example Action:
 // {
@@ -32,6 +35,7 @@ func (at *ActionType) UnmarshalJSON(data []byte) error {
 	case "\"FORWARD\"":
 		*at = ACTION_FORWARD
 	default:
+                logger.Errorf("invalid action type: %s", string(data))
 		return fmt.Errorf("invalid action type: %s", string(data))
 	}
 	return nil
@@ -44,6 +48,8 @@ func (at *ActionType) MarshalJSON() ([]byte, error) {
 	case ACTION_FORWARD:
 		return []byte("\"FORWARD\""), nil
 	default:
+                logger.Errorf("invalid action type: %d", *at)
 		return nil, fmt.Errorf("invalid action type: %d", *at)
+
 	}
 }
