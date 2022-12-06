@@ -14,12 +14,11 @@ type Protocol interface {
 	// Clone creates a new Protocol instance with the same rules (as a deep copy)
 	Clone() Protocol
 
-	// ApplyRules inputs the rules to be used by the protocol.
-	// Note the rules are out-of-order.
-	// TODO: Input in-order rules instead of out-of-order rules. May need something other than a map.
+	// ApplyRules save the rules for later Identify calls.
+	// Note the rules are out-of-order intentionally to prevent conflicting rules.
 	// Protocol implementations should make sure the CATCHEALL rule is always the last rule to be applied.
-	ApplyRules(rules []config.Rule) error // Apply rules to the protocol for later Identify()
+	ApplyRules(rules []config.Rule) error
 
 	// Identify identifies the rule that matches the request.
-	Identify(ctx context.Context, cBuf *ConnBuf) (config.Rule, error) // Identify will keep checking cBuf until it can identify a rule
+	Identify(ctx context.Context, cBuf *ConnBuf) (config.Rule, error) // Identify will keep checking cBuf until it can make a deterministic decision or the context is cancelled.
 }
